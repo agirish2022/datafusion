@@ -1,11 +1,9 @@
 provider "google" {
   project=var.project_id
 }
-
 data "google_project" "project"{
 
 }
-
 locals {
  googleapis = [
    "datafusion.googleapis.com"
@@ -34,12 +32,13 @@ resource "google_service_account_iam_member" "datafusion_user_dataproc_sa" {
 resource "google_compute_network" "custom-test" {
   name                    = var.network
   auto_create_subnetworks = false
+  delete_default_routes_on_create = true
 }
 resource "google_compute_subnetwork" "df-subnet" {
   name          = var.sub_network
   ip_cidr_range = "10.2.0.0/16"
   region        = var.region
-  network       = google_compute_network.custom-test.id
+  network       = google_compute_network.custom-test.id 
 }
 
 resource "google_data_fusion_instance" "data-fusion-private-instance" {
@@ -47,14 +46,14 @@ resource "google_data_fusion_instance" "data-fusion-private-instance" {
   region                        = var.region
   type                          = var.edition
   enable_stackdriver_logging    = var.enable_logging
-  private_instance              = var.private_instance
   network_config {
     network                     = google_compute_network.custom-test.name
     ip_allocation               = var.private_ip_range
   }
-  version = var.df_version
+  private_instance=var.private_instance
+  version=var.df_version
   labels = {
     example_key = var.label_value
-  }
+  } 
   dataproc_service_account = google_service_account.dataproc_sa.email
-}
+} 
